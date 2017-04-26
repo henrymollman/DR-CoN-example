@@ -2,7 +2,6 @@ FROM nginx:latest
 
 ENTRYPOINT ["/bin/entrypoint.sh"]
 EXPOSE 80
-VOLUME /templates
 ENV CONSUL_URL consul:8500
 
 ADD entrypoint.sh /bin/entrypoint.sh
