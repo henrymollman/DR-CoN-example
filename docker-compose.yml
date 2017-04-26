@@ -1,0 +1,54 @@
+version: '2'
+services:
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+  web1:
+    build:
+      context: https://github.com/RunnableDemo/node-starter.git
+    ports:
+      - "3000"
+    links:
+      - "db"
+    environment:
+      - MONGODB_HOST=db
+      - SERVICE_NAME=web
+  web2:
+    build:
+      context: https://github.com/RunnableDemo/node-starter.git#dark-theme
+    ports:
+      - "3000"
+    links:
+      - "db"
+    environment:
+      - MONGODB_HOST=db
+      - SERVICE_NAME=web
+  consul:
+    command: -server -bootstrap -data-dir /data -ui-dir /ui -advertise 127.0.0.1
+    image: progrium/consul:latest
+    ports:
+    - "8300:8300"
+    - "8400:8400"
+    - "8500:8500"
+    - "8600:53/udp"
+  registrator:
+    command: -internal consul://consul:8500
+    image: gliderlabs/registrator:latest
+    links:
+      - "consul"
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock"
+    restart: always
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./templates/service.ctmpl:/templates/service.ctmpl
+    ports:
+      - "80:80"
+    links:
+      - "consul"
+      - "web1"
+      - "web2"
